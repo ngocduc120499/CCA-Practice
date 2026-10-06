@@ -1,0 +1,25 @@
+# Optional: deploy from GitHub Actions instead of Vercel's Git integration.
+# Add repo secrets VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID (from `vercel link` -> .vercel/project.json).
+name: Deploy to Vercel
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm i -g vercel@latest
+      - name: Preview deploy (PRs)
+        if: github.event_name == 'pull_request'
+        run: vercel deploy --yes --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Production deploy (main)
+        if: github.event_name != 'pull_request'
+        run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
